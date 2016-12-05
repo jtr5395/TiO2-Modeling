@@ -13,10 +13,10 @@ from scipy.integrate import odeint
 
 # Shared Variables
 
-TiCl40 = 2 # mol/m^3
-O20 = 10 # mol/m^3
+TiCl40 = 200 # mol/m^3
+O20 = 1000 # mol/m^3
 
-end_time = 100
+end_time = 20
 steps = 1000
 
 times = np.linspace(0, end_time, steps)
@@ -126,9 +126,10 @@ def isobaric_rates(variables, time):
         rate_O2 = -(k1+k2*np.sqrt(O2))*TiCl4
         
         if isobaric_initial_conditions[1] < isobaric_initial_conditions[0]:
-            X = (isobaric_initial_conditions[1] - (O2 + rate_O2))/isobaric_initial_conditions[1]
+            X = -rate_O2/isobaric_initial_conditions[1]
         else:
-            X = (isobaric_initial_conditions[0] - (TiCl4 + rate_TiCl4))/isobaric_initial_conditions[0]
+            X = -rate_TiCl4/isobaric_initial_conditions[0]
+        
         
         Cp_TiCl4 = A_TiCl4 + B_TiCl4*(T/1000) + C_TiCl4*((T/1000)**2) + D_TiCl4*((T/1000)**3) + E_TiCl4/((T/1000)**2)
         
@@ -138,9 +139,10 @@ def isobaric_rates(variables, time):
         
         Cp_Cl2 = A_Cl2 + B_Cl2*(T/1000) + C_Cl2*((T/1000)**2) + D_Cl2*((T/1000)**3) + E_Cl2/((T/1000)**2)
         
-        rate_T = -delHr * X # / (Cp_TiCl4 + Cp_O2 - Cp_TiO2 - 2*Cp_Cl2)
         
-        # print(X, rate_T)
+        rate_T = -delHr * np.min(isobaric_initial_conditions) * X / (Cp_TiCl4 + Cp_O2 - Cp_TiO2 - 2*Cp_Cl2)
+        
+        #print(X, rate_T)
         
         return (rate_TiCl4, rate_O2, rate_T)
 
@@ -210,6 +212,7 @@ for T0 in range(800,1400,100):
     Ts_isobaric = isobaric_result[:,2]
     
     fig, ax1 = plt.subplots()
+    plt.title('T0 = ' + str(T0) + 'K')
     ax1.plot(times, TiCl4_isobaric, 'g-', label='TiCl4 non-isothermal')
     #ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
 
@@ -230,11 +233,60 @@ for T0 in range(800,1400,100):
 
     ax2 = ax1.twinx()
     ax2.plot(times, Ts_isobaric, 'r.', label='Temperature')
+    # plt.ylim((1780,1790))
     ax2.set_ylabel('Temperature (K)', color='r')
     for tl in ax2.get_yticklabels():
         tl.set_color('r')
 
     plt.show()
+
+
+# In[14]:
+
+from matplotlib import animation
+import matplotlib
+matplotlib.rc('animation', html='html5')
+
+fig = plt.figure()
+ax = fig.add_subplot(111, autoscale_on=False, xlim=(0,20), ylim=(0,2000))
+ax.grid()
+
+line1, = ax.plot([], [], 'o', ms=2)
+line2, = ax.plot([], [], '-', lw=2)
+line3, = ax.plot([], [], '-', lw=2)
+temperature_template = 'Temperature = %.0f K'
+temperature_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
+
+def init():
+    line1.set_data([], [])
+    line2.set_data([], [])
+    line3.set_data([], [])
+    temperature_text.set_text('')
+    return line1, line2, line3, temperature_text
+
+def animate(i):
+    T = 800 + i*20
+    isobaric_initial_conditions = (TiCl40, O20, T)
+    
+    isobaric_result = odeint(isobaric_rates, isobaric_initial_conditions, times)
+    y1 = isobaric_result[:,0]             
+    y2 = isobaric_result[:,1]
+    y3 = isobaric_result[:,2]
+
+    line1.set_data(times, y1)
+    line2.set_data(times, y2)
+    line3.set_data(times, y3)
+
+    temperature_text.set_text(temperature_template%T)
+    return line1, line2, line3, temperature_text
+
+anim = animation.FuncAnimation(fig, animate, frames=60, blit=True, init_func=init)
+anim
+
+
+# In[ ]:
+
+anim
 
 
 # In[ ]:
