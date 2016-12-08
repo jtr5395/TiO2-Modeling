@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[32]:
+# In[1]:
 
 get_ipython().magic('matplotlib inline')
 import matplotlib.pyplot as plt
@@ -9,13 +9,13 @@ import numpy as np
 from scipy.integrate import odeint
 
 
-# In[42]:
+# In[10]:
 
 # Shared Variables
-P = 100 # atm
+P = 10 # atm
 
-end_time = 20
-steps = 10000
+end_time = 1000
+steps = 100000
 
 times = np.linspace(0, end_time, steps)
 
@@ -23,17 +23,17 @@ A1 = 8.26e4
 A2 = 1.4e5 
 Ea = 88000 # J/mol
 R = 8.314 # J/mol*K
-T0 = 800 # K
+T0 = 1000 # K
 
 Ctot = (P)/(R*T0*9.86923e-6)
-TiCl40 = Ctot/5
-O20 = Ctot*4/5
+TiCl40 = Ctot/2
+O20 = Ctot/2
 print(TiCl40, O20)
 
 initial_conditions = (TiCl40, O20, T0)
 
 
-# In[43]:
+# In[11]:
 
 # Thermodynamic Data:
 
@@ -62,7 +62,7 @@ D_Cl2 = -0.165641
 E_Cl2 = -2.098480
 
 
-# In[44]:
+# In[12]:
 
 # Simple first order, constant T, constant P
 
@@ -81,7 +81,7 @@ def first_order_rates(variables, time):
     return (rate_TiCl4, rate_O2, 0)
 
 
-# In[45]:
+# In[13]:
 
 # Actual rate equation, constant T, constant P
 
@@ -106,7 +106,7 @@ def isothermal_rates(variables, time):
         return (rate_TiCl4, rate_O2, 0)
 
 
-# In[46]:
+# In[14]:
 
 # Actual rate equation, non-constant T, pressure not accounted for
 
@@ -151,7 +151,7 @@ def isobaric_rates(variables, time):
         return (rate_TiCl4, rate_O2, rate_T)
 
 
-# In[47]:
+# In[15]:
 
 first_order_result = odeint(first_order_rates, initial_conditions, times)
 TiCl4_first_order = first_order_result[:,0]             
@@ -167,9 +167,9 @@ O2_isobaric = isobaric_result[:,1]
 Ts_isobaric = isobaric_result[:,2]
 
 
-# In[48]:
+# In[17]:
 
-for T0 in range(800,1400,100):
+for T0 in [800]:
     initial_conditions = (TiCl40, O20, T0)
     
     first_order_result = odeint(first_order_rates, initial_conditions, times)
@@ -186,20 +186,20 @@ for T0 in range(800,1400,100):
     Ts_isobaric = isobaric_result[:,2]
     
     fig, ax1 = plt.subplots()
-    plt.title('T0 = ' + str(T0) + 'K')
-    ax1.plot(times, TiCl4_isobaric, 'b-', label='TiCl4 non-isothermal')
+    plt.title('T = ' + str(T0) + 'K, P = ' + str(P) + 'atm')
+    ax1.plot(times, TiCl4_isobaric, 'b-', label='Non-isothermal')
     #ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
 
-    ax1.plot(times, TiCl4_isothermal, 'b--', label='TiCl4 isothermal')
+    ax1.plot(times, TiCl4_isothermal, 'b--', label='Isothermal')
     #ax1.plot(times, O2_isothermal, 'b--', label='O2 isothermal')
 
-    ax1.plot(times, TiCl4_first_order, 'b-.', label='TiCl4 1st Order')
+    ax1.plot(times, TiCl4_first_order, 'b-.', label='Elementary')
     #ax1.plot(times, O2_first_order, 'b-.', label='O2 1st Order')
 
     ax1.set_xlabel('Residence Time (ms)')
 
     # Make the y-axis label and tick labels match the line color.
-    ax1.set_ylabel('Concentration (mol/m^3)', color='b', )
+    ax1.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
     for tl in ax1.get_yticklabels():
         tl.set_color('b')
 
@@ -212,10 +212,14 @@ for T0 in range(800,1400,100):
     for tl in ax2.get_yticklabels():
         tl.set_color('r')
 
+    ax1.set_ylim([0, TiCl40])
+    #ax2.set_ylim([800,1500])
+    plt.savefig('destination_path.tiff', format='tiff', dpi=250)
     plt.show()
+   
 
 
-# In[49]:
+# In[20]:
 
 from matplotlib import animation
 import matplotlib
@@ -231,7 +235,7 @@ ax1.set_xlabel('Residence Time (ms)')
 plt.title('Initial Pressure = ' + str(P) + ' atm')
 
 # Make the y-axis label and tick labels match the line color.
-ax1.set_ylabel('Concentration (mol/m^3)', color='b', )
+ax1.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
 for tl in ax1.get_yticklabels():
     tl.set_color('b')
 
@@ -242,17 +246,17 @@ for tl in ax2.get_yticklabels():
     tl.set_color('r')
     
 ax1.set_ylim([0, TiCl40])
-ax2.set_ylim([800,1500])
+ax2.set_ylim([700,1400])
 
 ax1.set_xlim([0, end_time])
 #ax2.set_xlim([0, end_time])
 
-line1, = ax1.plot([], [], 'b-')
-line2, = ax1.plot([], [], 'b--')
-line3, = ax1.plot([], [], 'b-.')
+line1, = ax1.plot([], [], 'b-', label='Non-isothermal')
+line2, = ax1.plot([], [], 'b--', label='Isothermal')
+line3, = ax1.plot([], [], 'b-.', label='First Order')
 line4, = ax2.plot([], [], 'r-', linewidth=2)
 temperature_template = 'Initial Temperature = %.0f K'
-temperature_text = ax2.text(0.55, 0.92, '', transform=ax2.transAxes)
+temperature_text = ax2.text(0.52, 0.92, '', transform=ax2.transAxes)
 
 def init():
     line1.set_data([], [])
@@ -263,10 +267,10 @@ def init():
     return line1, line2, line3, line4, temperature_text
 
 def animate(i):
-    if i<=300:
-        T0 = 800 + i*2
+    if i<=250:
+        T0 = 700 + i*2
     else:
-        T0 = 1400 - (i-300)*2
+        T0 = 1200 - (i-250)*2
     initial_conditions = (TiCl40, O20, T0)
     
     isobaric_result = odeint(isobaric_rates, initial_conditions, times)
@@ -287,11 +291,11 @@ def animate(i):
     temperature_text.set_text(temperature_template%T0)
     return line1, line2, line3, line4, temperature_text
 
-anim = animation.FuncAnimation(fig, animate, frames=601, blit=True, init_func=init, interval=20)
+anim = animation.FuncAnimation(fig, animate, frames=501, blit=True, init_func=init, interval=20)
 anim
 
 
-# In[41]:
+# In[21]:
 
 FFMpegWriter = animation.writers['ffmpeg']
 metadata = dict(title='Movie Test', artist='Matplotlib',
@@ -300,7 +304,84 @@ metadata = dict(title='Movie Test', artist='Matplotlib',
 # Change the video bitrate as you like and add some metadata.
 mywriter = FFMpegWriter(fps=30, bitrate=5000, metadata=metadata)
 
-# anim.save("P100atm.mp4", writer=mywriter)
+anim.save("NewestP15atm.mp4", writer=mywriter)
+
+
+# side by side subplots to compare lab and industrial pressures
+# side by side subplots to compare low, mid, high temperatures
+
+# In[ ]:
+
+for steps in range(2,20000,1000):
+    times = np.linspace(0, end_time, steps)
+    
+    first_order_result = odeint(first_order_rates, initial_conditions, times)
+    TiCl4_first_order = first_order_result[:,0]             
+    O2_first_order = first_order_result[:,1]
+
+    isothermal_result = odeint(isothermal_rates, initial_conditions, times)
+    TiCl4_isothermal = isothermal_result[:,0]             
+    O2_isothermal = isothermal_result[:,1]
+
+    isobaric_result = odeint(isobaric_rates, initial_conditions, times)
+    TiCl4_isobaric = isobaric_result[:,0]             
+    O2_isobaric = isobaric_result[:,1]
+    Ts_isobaric = isobaric_result[:,2]
+    
+    print(isobaric_result[int(steps/2),:],isothermal_result[int(steps/2),:])
+
+
+# In[ ]:
+
+for P in [5,10,15]:
+    T0=1000
+    Ctot = (P)/(R*T0*9.86923e-6)
+    TiCl40 = Ctot/2
+    O20 = Ctot/2
+
+    initial_conditions = (TiCl40, O20, T0)
+    
+    first_order_result = odeint(first_order_rates, initial_conditions, times)
+    TiCl4_first_order = first_order_result[:,0]             
+    O2_first_order = first_order_result[:,1]
+
+    isothermal_result = odeint(isothermal_rates, initial_conditions, times)
+    TiCl4_isothermal = isothermal_result[:,0]             
+    O2_isothermal = isothermal_result[:,1]
+
+    isobaric_result = odeint(isobaric_rates, initial_conditions, times)
+    TiCl4_isobaric = isobaric_result[:,0]             
+    O2_isobaric = isobaric_result[:,1]
+    Ts_isobaric = isobaric_result[:,2]
+    
+    fig, ax1 = plt.subplots()
+    plt.title('Initial Pressure = ' + str(P) + 'atm')
+    ax1.plot(times, TiCl4_isobaric, 'b-', label='Non-isothermal')
+    #ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
+
+    ax1.plot(times, TiCl4_isothermal, 'b--', label='Isothermal')
+    #ax1.plot(times, O2_isothermal, 'b--', label='O2 isothermal')
+
+    ax1.plot(times, TiCl4_first_order, 'b-.', label='Elementary')
+    #ax1.plot(times, O2_first_order, 'b-.', label='O2 1st Order')
+
+    ax1.set_xlabel('Residence Time (ms)')
+
+    # Make the y-axis label and tick labels match the line color.
+    ax1.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
+    for tl in ax1.get_yticklabels():
+        tl.set_color('b')
+
+    plt.legend(loc='center left', bbox_to_anchor=(1.25, .5))
+
+    ax2 = ax1.twinx()
+    ax2.plot(times, Ts_isobaric, 'r.', label='Temperature')
+    # plt.ylim((1780,1790))
+    ax2.set_ylabel('Temperature (K)', color='r')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('r')
+
+    plt.show()
 
 
 # In[ ]:
