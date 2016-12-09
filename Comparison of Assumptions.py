@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 get_ipython().magic('matplotlib inline')
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ import numpy as np
 from scipy.integrate import odeint
 
 
-# In[10]:
+# In[ ]:
 
 # Shared Variables
 P = 10 # atm
@@ -33,7 +33,7 @@ print(TiCl40, O20)
 initial_conditions = (TiCl40, O20, T0)
 
 
-# In[11]:
+# In[ ]:
 
 # Thermodynamic Data:
 
@@ -62,7 +62,7 @@ D_Cl2 = -0.165641
 E_Cl2 = -2.098480
 
 
-# In[12]:
+# In[ ]:
 
 # Simple first order, constant T, constant P
 
@@ -81,7 +81,7 @@ def first_order_rates(variables, time):
     return (rate_TiCl4, rate_O2, 0)
 
 
-# In[13]:
+# In[ ]:
 
 # Actual rate equation, constant T, constant P
 
@@ -106,7 +106,7 @@ def isothermal_rates(variables, time):
         return (rate_TiCl4, rate_O2, 0)
 
 
-# In[14]:
+# In[ ]:
 
 # Actual rate equation, non-constant T, pressure not accounted for
 
@@ -151,7 +151,7 @@ def isobaric_rates(variables, time):
         return (rate_TiCl4, rate_O2, rate_T)
 
 
-# In[15]:
+# In[9]:
 
 first_order_result = odeint(first_order_rates, initial_conditions, times)
 TiCl4_first_order = first_order_result[:,0]             
@@ -167,7 +167,7 @@ O2_isobaric = isobaric_result[:,1]
 Ts_isobaric = isobaric_result[:,2]
 
 
-# In[17]:
+# In[ ]:
 
 for T0 in [800]:
     initial_conditions = (TiCl40, O20, T0)
@@ -219,7 +219,7 @@ for T0 in [800]:
    
 
 
-# In[20]:
+# In[ ]:
 
 from matplotlib import animation
 import matplotlib
@@ -295,7 +295,7 @@ anim = animation.FuncAnimation(fig, animate, frames=501, blit=True, init_func=in
 anim
 
 
-# In[21]:
+# In[ ]:
 
 FFMpegWriter = animation.writers['ffmpeg']
 metadata = dict(title='Movie Test', artist='Matplotlib',
@@ -382,6 +382,219 @@ for P in [5,10,15]:
         tl.set_color('r')
 
     plt.show()
+
+
+# In[ ]:
+
+
+
+
+# In[121]:
+
+# Shared Variables
+P1 = 5 # atm
+
+end_time = 500
+steps = 100000
+
+times = np.linspace(0, end_time, steps)
+
+A1 = 8.26e4
+A2 = 1.4e5 
+Ea = 88000 # J/mol
+R = 8.314 # J/mol*K
+T01 = 800 # K
+
+Ctot = (P1)/(R*T01*9.86923e-6)
+TiCl401 = Ctot/2
+O201 = Ctot/2
+print(TiCl401, O201)
+
+initial_conditions = (TiCl401, O201, T01)
+
+
+# In[122]:
+
+first_order_result1 = odeint(first_order_rates, initial_conditions, times)
+TiCl4_first_order1 = first_order_result1[:,0]             
+O2_first_order1 = first_order_result1[:,1]
+
+isothermal_result1 = odeint(isothermal_rates, initial_conditions, times)
+TiCl4_isothermal1 = isothermal_result1[:,0]             
+O2_isothermal1 = isothermal_result1[:,1]
+
+isobaric_result1 = odeint(isobaric_rates, initial_conditions, times)
+TiCl4_isobaric1 = isobaric_result1[:,0]             
+O2_isobaric1 = isobaric_result1[:,1]
+Ts_isobaric1 = isobaric_result1[:,2]
+
+
+# In[123]:
+
+# Shared Variables
+P2 = 15 # atm
+
+end_time = 500
+steps = 100000
+
+times = np.linspace(0, end_time, steps)
+
+A1 = 8.26e4
+A2 = 1.4e5 
+Ea = 88000 # J/mol
+R = 8.314 # J/mol*K
+T02 = 800 # K
+
+Ctot = (P2)/(R*T02*9.86923e-6)
+TiCl402 = Ctot/2
+O202 = Ctot/2
+print(TiCl402, O202)
+
+initial_conditions = (TiCl402, O202, T02)
+
+
+# In[124]:
+
+first_order_result2 = odeint(first_order_rates, initial_conditions, times)
+TiCl4_first_order2 = first_order_result2[:,0]             
+O2_first_order2 = first_order_result2[:,1]
+
+isothermal_result2 = odeint(isothermal_rates, initial_conditions, times)
+TiCl4_isothermal2 = isothermal_result2[:,0]             
+O2_isothermal2 = isothermal_result2[:,1]
+
+isobaric_result2 = odeint(isobaric_rates, initial_conditions, times)
+TiCl4_isobaric2 = isobaric_result2[:,0]             
+O2_isobaric2 = isobaric_result2[:,1]
+Ts_isobaric2 = isobaric_result2[:,2]
+
+
+# In[126]:
+
+fig, (ax1, ax3)  = plt.subplots(1,2)
+
+ax1.set_title('T = ' + str(T01) + 'K, P = ' + str(P1) + 'atm')
+ax1.plot(times, TiCl4_isobaric1, 'b-', label='Non-isothermal')
+#ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
+
+ax1.plot(times, TiCl4_isothermal1, 'b--', label='Isothermal')
+#ax1.plot(times, O2_isothermal, 'b--', label='O2 isothermal')
+
+ax1.plot(times, TiCl4_first_order1, 'b-.', label='Elementary')
+#ax1.plot(times, O2_first_order, 'b-.', label='O2 1st Order')
+
+ax1.set_xlabel('Residence Time (ms)')
+
+# Make the y-axis label and tick labels match the line color.
+ax1.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
+for tl in ax1.get_yticklabels():
+    tl.set_color('b')
+
+ax2 = ax1.twinx()
+ax2.plot(times, Ts_isobaric1, 'r.', label='Temperature')
+# plt.ylim((1780,1790))
+ax2.set_ylabel('Temperature (K)', color='r')
+for tl in ax2.get_yticklabels():
+    tl.set_color('r')
+
+    
+ax3.set_title('T = ' + str(T02) + 'K, P = ' + str(P2) + 'atm')
+ax3.plot(times, TiCl4_isobaric2, 'b-', label='Non-isothermal')
+#ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
+
+ax3.plot(times, TiCl4_isothermal2, 'b--', label='Isothermal')
+#ax1.plot(times, O2_isothermal, 'b--', label='O2 isothermal')
+
+ax3.plot(times, TiCl4_first_order2, 'b-.', label='Elementary')
+#ax1.plot(times, O2_first_order, 'b-.', label='O2 1st Order')
+
+ax3.set_xlabel('Residence Time (ms)')
+
+# Make the y-axis label and tick labels match the line color.
+ax3.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
+for tl in ax3.get_yticklabels():
+    tl.set_color('b')
+
+ax4 = ax3.twinx()
+ax4.plot(times, Ts_isobaric2, 'r.', label='Temperature')
+# plt.ylim((1780,1790))
+ax4.set_ylabel('Temperature (K)', color='r')
+for tl in ax4.get_yticklabels():
+    tl.set_color('r')
+
+ax1.set_position([0,0,.75,.75])
+ax2.set_position([0,0,.75,.75])
+ax3.set_position([1,0,.75,.75])
+ax4.set_position([1,0,.75,.75])
+
+ax3.legend(loc='center left', bbox_to_anchor=(1.25, .5))
+
+plt.savefig('Temperature_Comparison.tiff', format='tiff', dpi=300, bbox_inches='tight')
+plt.show()
+
+
+# In[120]:
+
+fig, (ax1, ax3)  = plt.subplots(1,2)
+
+ax1.set_title('T = ' + str(T01) + 'K, P = ' + str(P1) + 'atm')
+ax1.plot(times, TiCl4_isobaric1, 'b-', label='Non-isothermal')
+#ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
+
+ax1.plot(times, TiCl4_isothermal1, 'b--', label='Isothermal')
+#ax1.plot(times, O2_isothermal, 'b--', label='O2 isothermal')
+
+ax1.plot(times, TiCl4_first_order1, 'b-.', label='Elementary')
+#ax1.plot(times, O2_first_order, 'b-.', label='O2 1st Order')
+
+ax1.set_xlabel('Residence Time (ms)')
+
+# Make the y-axis label and tick labels match the line color.
+ax1.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
+for tl in ax1.get_yticklabels():
+    tl.set_color('b')
+
+ax2 = ax1.twinx()
+ax2.plot(times, Ts_isobaric1, 'r.', label='Temperature')
+# plt.ylim((1780,1790))
+ax2.set_ylabel('Temperature (K)', color='r')
+for tl in ax2.get_yticklabels():
+    tl.set_color('r')
+
+    
+ax3.set_title('T = ' + str(T02) + 'K, P = ' + str(P2) + 'atm')
+ax3.plot(times, TiCl4_isobaric2, 'b-', label='Non-isothermal')
+#ax1.plot(times, O2_isobaric, 'b-', label='O2 non-isothermal')
+
+ax3.plot(times, TiCl4_isothermal2, 'b--', label='Isothermal')
+#ax1.plot(times, O2_isothermal, 'b--', label='O2 isothermal')
+
+ax3.plot(times, TiCl4_first_order2, 'b-.', label='Elementary')
+#ax1.plot(times, O2_first_order, 'b-.', label='O2 1st Order')
+
+ax3.set_xlabel('Residence Time (ms)')
+
+# Make the y-axis label and tick labels match the line color.
+ax3.set_ylabel('Concentration TiCl4 (mol/m^3)', color='b', )
+for tl in ax3.get_yticklabels():
+    tl.set_color('b')
+
+ax4 = ax3.twinx()
+ax4.plot(times, Ts_isobaric2, 'r.', label='Temperature')
+# plt.ylim((1780,1790))
+ax4.set_ylabel('Temperature (K)', color='r')
+for tl in ax4.get_yticklabels():
+    tl.set_color('r')
+
+ax1.set_position([0,0,.75,.75])
+ax2.set_position([0,0,.75,.75])
+ax3.set_position([1,0,.75,.75])
+ax4.set_position([1,0,.75,.75])
+
+ax3.legend(loc='center left', bbox_to_anchor=(1.25, .5))
+
+# plt.savefig('Pressure_Comparison.tiff', format='tiff', dpi=300, bbox_inches='tight')
+plt.show()
 
 
 # In[ ]:
